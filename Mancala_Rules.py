@@ -1,17 +1,8 @@
-from collections import OrderedDict
 import numpy as np
-import pygame
 import sys
 import math
 
-BLUE = (0,0,255)
-BLACK = (0,0,0)
-BURLYWOOD = (222,184,135)
-PERU = (205,133,63)
-ROSYBROWN = (188,143,143)
-YELLOW = (255,255,0)
-ROW_COUNT = 2
-COLUMN_COUNT = 8
+
 
 class Board:
     def __init__(self):
@@ -20,13 +11,20 @@ class Board:
         self.positions_B = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'BStore', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6']
         self.pockets = {}
         self.is_player_A = True
+        self.POINTS_A = sum(self.pockets['AStore'])
+        self.POINTS_B = sum(self.pockets['BStore'])
+
         for p in self.positions:
             if p != 'BStore' and p != 'AStore':
                 self.pockets[p] = 4
             else:
                 self.pockets[p] = 0
     def display(self):
-        print(self.pockets)
+        pocket_positions = [self.pockets[p] for p in self.positions[:6]]
+        print('    [ {} ] [ {} ] [ {} ] | [ {} ] [ {} ] [ {} ]    '.format(self.pockets['B6'],self.pockets['B5'],self.pockets['B4'],self.pockets['B3'],self.pockets['B2'],self.pockets['B1']))
+        print('[{}]               |                      [{}]'.format(self.pockets['BStore'],self.pockets['AStore']))
+        print('    [ {} ] [ {} ] [ {} ] | [ {} ] [ {} ] [ {} ]    '.format(self.pockets['A1'],self.pockets['A2'],self.pockets['A3'],self.pockets['A4'],self.pockets['A5'],self.pockets['A6']))
+
     def position_index(self, pocket_name):
         if self.is_player_A:
             positions = self.positions_A
@@ -66,6 +64,18 @@ class Board:
             self.pockets[p_name] = self.pockets[p_name] + 1
             pieces = pieces - 1
         self.win_check()
+    def Player_A(self, choice):
+        positions = self.positions_A[:7]
+        if choice in [0,1,2,3,4,5]:
+            self.move(positions[choice],True)
+        else:
+            return -1
+    def Player_B(self, choice):
+        positions = self.positions_B[:7]
+        if choice in [0,1,2,3,4,5]:
+            self.move(positions[choice],False)
+        else:
+            return -1
     def out_of_rules_move(self, current_pocket, dest_pocket):
         pieces = self.pockets[current_pocket]
         self.pockets[dest_pocket] += pieces
@@ -113,6 +123,7 @@ def Mancala_test(board):
     Mancala.move('A4', True)
     Mancala.move('A5', True)
     Mancala.move('A6', True)
+    # print('next set')
     # Mancala.move('A1', True)
     # Mancala.move('A2', True)
     # Mancala.move('A3', True)
@@ -123,80 +134,4 @@ def Mancala_test(board):
     Mancala.win_check()
 
 
-def draw_board(board):
-    for c in range(COLUMN_COUNT):
-        if c in [0,COLUMN_COUNT-1]:
-                
-                pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, 0*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-                pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, 1*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-                pygame.draw.ellipse(screen, PERU, pygame.Rect(c*SQUARESIZE+15,0*SQUARESIZE+SQUARESIZE+25, SQUARESIZE*(3/4),SQUARESIZE*2*(3/4)))
-                pygame.display.set_caption('Stores') 
-        else:
-            for r in range(ROW_COUNT):
-                pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-                pygame.draw.circle(screen, PERU, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
-                pygame.display.set_caption('Stores') 
-    for c in range(COLUMN_COUNT):
-        if c in [0,COLUMN_COUNT-1]:
-                pygame.display.set_caption('Stores') 
-                pieces = board.get_pockets()[(board.get_positions()[c])]
-                text = font.render(str(pieces), True, BLACK, ROSYBROWN)
-                textRect = text.get_rect()
-                textRect.center = ((c*SQUARESIZE+(c*100)+100) // 2,(SQUARESIZE+300) // 2)
-                screen.blit(text, textRect)
-        else:
-            for r in range(ROW_COUNT):
-                pygame.display.set_caption('Stores') 
-                
-                if r == 0:
-                    pieces = board.get_pockets()[(board.get_positions()[c])]
-                    text = font.render(str(pieces), True, BLACK, ROSYBROWN)
-                    textRect = text.get_rect()
-                    textRect.center = ((c*SQUARESIZE+(c*100)+100) // 2,(r*SQUARESIZE+500) // 2)
-                    screen.blit(text, textRect)
-                elif r == 1:
-                    pieces = board.get_pockets()[(board.get_positions()[14-c])]
-                    text = font.render(str(pieces), True, BLACK, ROSYBROWN)
-                    textRect = text.get_rect()
-                    textRect.center = ((c*SQUARESIZE+(c*100)+100) // 2,(r*SQUARESIZE+200) // 2)
-                    screen.blit(text, textRect)
-                else:
-                    continue
-        
-    
-    # for c in range(COLUMN_COUNT):
-    #     if c in [0,COLUMN_COUNT-1]:
-    #             pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, 0*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-    #             pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, 1*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-    #             pygame.draw.ellipse(screen, PERU, pygame.Rect(c*SQUARESIZE+15,0*SQUARESIZE+SQUARESIZE+25, SQUARESIZE*(3/4),SQUARESIZE*2*(3/4)))
 
-    #     else:
-    #         for r in range(ROW_COUNT):
-    #             pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-    #             pygame.draw.circle(screen, PERU, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
-    pygame.display.update()         
-Mancala = Board()
-Mancala_test(Mancala)
-game_over = False
-turn = 0
-
-pygame.init()
-
-SQUARESIZE = 100
-width = COLUMN_COUNT * SQUARESIZE
-height = (ROW_COUNT+1) * SQUARESIZE
-font = pygame.font.Font('freesansbold.ttf', 16) 
-
-size = (width, height)
-
-RADIUS = int(SQUARESIZE/2 - 5)
-
-screen = pygame.display.set_mode(size)
-draw_board(Mancala)
-pygame.display.update()
-
-while not game_over:
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
