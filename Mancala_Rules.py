@@ -11,14 +11,14 @@ class Board:
         self.positions_B = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'BStore', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6']
         self.pockets = {}
         self.is_player_A = True
-        self.POINTS_A = sum(self.pockets['AStore'])
-        self.POINTS_B = sum(self.pockets['BStore'])
-
         for p in self.positions:
             if p != 'BStore' and p != 'AStore':
                 self.pockets[p] = 4
             else:
                 self.pockets[p] = 0
+        self.POINTS_A = 0
+        self.POINTS_B = 0
+        self.gameover = False
     def display(self):
         pocket_positions = [self.pockets[p] for p in self.positions[:6]]
         print('    [ {} ] [ {} ] [ {} ] | [ {} ] [ {} ] [ {} ]    '.format(self.pockets['B6'],self.pockets['B5'],self.pockets['B4'],self.pockets['B3'],self.pockets['B2'],self.pockets['B1']))
@@ -46,24 +46,29 @@ class Board:
             return True
         else:
             return False
-    def move(self, pocket_name, is_player_A):
-        self.is_player_A = is_player_A
+    def move(self, pocket_name):
         if self.is_player_A:
             positions = self.positions_A
         else:
             positions = self.positions_B
-        pieces = self.pockets.get(pocket_name)
-        self.pockets[pocket_name] = 0
-        n = self.position_index(pocket_name)
-        while pieces > 0:
-            n = n + 1
-            if n > 12:
-                n = 0
-            p_name = positions[n]
-            self.take_other_side(pieces,p_name)
-            self.pockets[p_name] = self.pockets[p_name] + 1
-            pieces = pieces - 1
-        self.win_check()
+        if self.can_start_here(pocket_name):
+            pieces = self.pockets.get(pocket_name)
+            self.pockets[pocket_name] = 0
+            n = self.position_index(pocket_name)
+            while pieces > 0:
+                n = n + 1
+                if n > 12:
+                    n = 0
+                p_name = positions[n]
+                self.take_other_side(pieces,p_name)
+                self.pockets[p_name] = self.pockets[p_name] + 1
+                pieces = pieces - 1
+                if pieces == 0 and p_name in ['AStore','BStore']:
+                    self.is_player_A = not self.is_player_A
+            self.win_check()
+            self.is_player_A = not self.is_player_A
+        else:
+            pass
     def Player_A(self, choice):
         positions = self.positions_A[:7]
         if choice in [0,1,2,3,4,5]:
@@ -101,6 +106,10 @@ class Board:
                 for p in pl[:6]:
                     if self.pockets[p] > 0:
                         self.out_of_rules_move(p, pl[6])
+            self.gameover = True
+
+        self.POINTS_A = self.pockets['AStore']
+        self.POINTS_B = self.pockets['BStore']
         print(A_positions,B_positions)
         print(A_sum,B_sum)
     def get_positions(self):
@@ -109,6 +118,8 @@ class Board:
         return self.pockets
     def get_is_A(self):
         return self.is_player_A
+    def gameover(self):
+        return self.gameover
 
 positions = ['BStore','A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
 positions_A = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
@@ -116,6 +127,7 @@ positions_B = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'BStore', 'A1', 'A2', 'A3', '
 pockets = {}
 
 def Mancala_test(board):
+    Mancala = board
     Mancala.display()
     Mancala.move('A1', True)
     Mancala.move('A2', True)

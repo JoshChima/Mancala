@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 import sys
 import math
+from Mancala_Rules import Board
 
 
 BLUE = (0,0,255)
@@ -12,7 +13,7 @@ ROSYBROWN = (188,143,143)
 YELLOW = (255,255,0)
 ROW_COUNT = 2
 COLUMN_COUNT = 8
-
+ButtonStore = {}
 
 def draw_board(board):
     for c in range(COLUMN_COUNT):
@@ -25,8 +26,16 @@ def draw_board(board):
         else:
             for r in range(ROW_COUNT):
                 pygame.draw.rect(screen, BURLYWOOD, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-                pygame.draw.circle(screen, PERU, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
-                pygame.display.set_caption('Stores') 
+                BUTTON = pygame.draw.circle(screen, PERU, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
+                pygame.display.set_caption('Stores')
+                if r == 0:
+                    label = board.get_positions()[14-c]
+                elif r == 1:
+                    label = board.get_positions()[c]
+                else:
+                    label = "None"
+                ButtonStore[label] = BUTTON
+
     for c in range(COLUMN_COUNT):
         if c in [0,COLUMN_COUNT-1]:
                 pygame.display.set_caption('Pockets') 
@@ -80,12 +89,15 @@ def draw_board(board):
                 else:
                     continue
     pygame.display.update()         
+
+
+
 Mancala = Board()
 #Mancala_test(Mancala)
-game_over = True #Change this to start
-turn = 0
+game_over = False #Change this if game not stable start
 
 pygame.init()
+
 
 SQUARESIZE = 100
 width = COLUMN_COUNT * SQUARESIZE
@@ -103,3 +115,14 @@ while not game_over:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            print(Mancala.get_is_A())
+            for label, button in ButtonStore.items():
+                if button.collidepoint(event.pos):
+                    Mancala.move(label)
+                    print(label)
+            draw_board(Mancala)
+            game_over = Mancala.gameover
+            if game_over:
+                pygame.time.wait(3000)
+
