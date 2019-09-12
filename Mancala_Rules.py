@@ -129,12 +129,12 @@ pockets = {}
 def Mancala_test(board):
     Mancala = board
     Mancala.display()
-    Mancala.move('A1', True)
-    Mancala.move('A2', True)
-    Mancala.move('A3', True)
-    Mancala.move('A4', True)
-    Mancala.move('A5', True)
-    Mancala.move('A6', True)
+    Mancala.move('A1')
+    Mancala.move('B2')
+    Mancala.move('A3')
+    Mancala.move('B4')
+    Mancala.move('A5')
+    Mancala.move('B6')
     # print('next set')
     # Mancala.move('A1', True)
     # Mancala.move('A2', True)
