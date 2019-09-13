@@ -2,8 +2,6 @@ import numpy as np
 import sys
 import math
 
-
-
 class Board:
     def __init__(self):
         self.positions = ['BStore','A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
@@ -68,17 +66,17 @@ class Board:
             self.win_check()
             self.is_player_A = not self.is_player_A
         else:
-            pass
+            pass  
     def Player_A(self, choice):
         positions = self.positions_A[:7]
         if choice in [0,1,2,3,4,5]:
-            self.move(positions[choice],True)
+            self.move(positions[choice])
         else:
             return -1
     def Player_B(self, choice):
         positions = self.positions_B[:7]
         if choice in [0,1,2,3,4,5]:
-            self.move(positions[choice],False)
+            self.move(positions[choice])
         else:
             return -1
     def out_of_rules_move(self, current_pocket, dest_pocket):
@@ -89,12 +87,12 @@ class Board:
     def take_other_side(self, piece_count, dest_pocket):
         if piece_count == 1 and self.pockets[dest_pocket] == 0:
             inverse_n_dest = self.positions.index(dest_pocket) * -1
-            piece = self.pockets[positions[inverse_n_dest]]
+            piece = self.pockets[self.positions[inverse_n_dest]]
             if self.is_player_A:
                 self.pockets['AStore'] += piece
             else:
                 self.pockets['BStore'] += piece
-            self.pockets[positions[inverse_n_dest]] = 0
+            self.pockets[self.positions[inverse_n_dest]] = 0
     def win_check(self):
         A_positions = [self.pockets[p] for p in self.positions_A[:6]]
         B_positions = [self.pockets[p] for p in self.positions_B[:6]]
@@ -121,11 +119,6 @@ class Board:
     def gameover(self):
         return self.gameover
 
-positions = ['BStore','A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
-positions_A = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
-positions_B = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'BStore', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6']
-pockets = {}
-
 def Mancala_test(board):
     Mancala = board
     Mancala.display()
@@ -135,6 +128,9 @@ def Mancala_test(board):
     Mancala.move('B4')
     Mancala.move('A5')
     Mancala.move('B6')
+    Mancala.__init__()
+    Mancala.move('A1')
+
     # print('next set')
     # Mancala.move('A1', True)
     # Mancala.move('A2', True)
@@ -146,4 +142,4 @@ def Mancala_test(board):
     Mancala.win_check()
 
 
-
+#Mancala_test()
