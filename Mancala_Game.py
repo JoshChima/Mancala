@@ -15,7 +15,17 @@ ROW_COUNT = 2
 COLUMN_COUNT = 8
 ButtonStore = {}
 
-def draw_board(board):
+def draw_board(board, ButtonStore):
+    SQUARESIZE = 100
+    width = COLUMN_COUNT * SQUARESIZE
+    height = (ROW_COUNT+1) * SQUARESIZE
+    font = pygame.font.Font('freesansbold.ttf', 16) 
+
+    size = (width, height)
+
+    RADIUS = int(SQUARESIZE/2 - 5)
+
+    screen = pygame.display.set_mode(size)
     for c in range(COLUMN_COUNT):
         if c in [0,COLUMN_COUNT-1]:
                 
@@ -92,37 +102,4 @@ def draw_board(board):
 
 
 
-Mancala = Board()
-#Mancala_test(Mancala)
-game_over = False #Change this if game not stable start
-
-pygame.init()
-
-
-SQUARESIZE = 100
-width = COLUMN_COUNT * SQUARESIZE
-height = (ROW_COUNT+1) * SQUARESIZE
-font = pygame.font.Font('freesansbold.ttf', 16) 
-
-size = (width, height)
-
-RADIUS = int(SQUARESIZE/2 - 5)
-
-screen = pygame.display.set_mode(size)
-draw_board(Mancala)
-pygame.display.update()
-while not game_over:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            print(Mancala.get_is_A())
-            for label, button in ButtonStore.items():
-                if button.collidepoint(event.pos):
-                    Mancala.move(label)
-                    print(label)
-            draw_board(Mancala)
-            game_over = Mancala.gameover
-            if game_over:
-                pygame.time.wait(3000)
 

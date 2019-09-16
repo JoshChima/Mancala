@@ -5,8 +5,8 @@ import math
 class Board:
     def __init__(self):
         self.positions = ['BStore','A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
-        self.positions_A = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
-        self.positions_B = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'BStore', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6']
+        self.positions_A = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'AStore', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6','BStore']
+        self.positions_B = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'BStore', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6','AStore']
         self.pockets = {}
         self.is_player_A = True
         for p in self.positions:
@@ -17,11 +17,27 @@ class Board:
         self.POINTS_A = 0
         self.POINTS_B = 0
         self.gameover = False
+        self.winner_is_A = None
+        self.game_state = np.array([self.pockets[p] for p in self.positions])
+    def reset(self):
+        self.pockets = {}
+        self.is_player_A = True
+        for p in self.positions:
+            if p != 'BStore' and p != 'AStore':
+                self.pockets[p] = 4
+            else:
+                self.pockets[p] = 0
+        self.game_state = np.array([self.pockets[p] for p in self.positions])
+        self.POINTS_A = 0
+        self.POINTS_B = 0
+        self.gameover = False
+        return self.game_state
     def display(self):
         pocket_positions = [self.pockets[p] for p in self.positions[:6]]
+        print('StoreB[{}]'.format(self.pockets['BStore']))
         print('    [ {} ] [ {} ] [ {} ] | [ {} ] [ {} ] [ {} ]    '.format(self.pockets['B6'],self.pockets['B5'],self.pockets['B4'],self.pockets['B3'],self.pockets['B2'],self.pockets['B1']))
-        print('[{}]               |                      [{}]'.format(self.pockets['BStore'],self.pockets['AStore']))
         print('    [ {} ] [ {} ] [ {} ] | [ {} ] [ {} ] [ {} ]    '.format(self.pockets['A1'],self.pockets['A2'],self.pockets['A3'],self.pockets['A4'],self.pockets['A5'],self.pockets['A6']))
+        print('StoreA[{}]'.format(self.pockets['AStore']))
 
     def position_index(self, pocket_name):
         if self.is_player_A:
@@ -36,6 +52,8 @@ class Board:
         return "This is not a pocket"
     
     def can_start_here(self, pocket_name):
+        if self.pockets[pocket_name] == 0:
+            return False
         if self.is_player_A:
             positions = self.positions_A
         else:
@@ -55,7 +73,7 @@ class Board:
             n = self.position_index(pocket_name)
             while pieces > 0:
                 n = n + 1
-                if n > 12:
+                if n > len(positions)-1:
                     n = 0
                 p_name = positions[n]
                 self.take_other_side(pieces,p_name)
@@ -66,7 +84,7 @@ class Board:
             self.win_check()
             self.is_player_A = not self.is_player_A
         else:
-            pass  
+            return -1
     def Player_A(self, choice):
         positions = self.positions_A[:7]
         if choice in [0,1,2,3,4,5]:
@@ -99,17 +117,23 @@ class Board:
         A_sum = sum(A_positions)
         B_sum = sum(B_positions)
         SUMS = [A_sum,B_sum]
+        self.POINTS_A = self.pockets['AStore']
+        self.POINTS_B = self.pockets['BStore']
         if 0 in SUMS:
             for pl in [self.positions_A, self.positions_B]:
                 for p in pl[:6]:
                     if self.pockets[p] > 0:
                         self.out_of_rules_move(p, pl[6])
-            self.gameover = True
+            if self.POINTS_A > self.POINTS_B:
+                self.winner_is_A = True
+            elif self.POINTS_B > self.POINTS_A:
+                self.winner_is_A = False
+            else:
+                self.winner_is_A = None
 
-        self.POINTS_A = self.pockets['AStore']
-        self.POINTS_B = self.pockets['BStore']
-        print(A_positions,B_positions)
-        print(A_sum,B_sum)
+            self.gameover = True
+        #print(A_positions,B_positions)
+        #print(A_sum,B_sum)
     def get_positions(self):
         return self.positions
     def get_pockets(self):
@@ -119,6 +143,55 @@ class Board:
     def gameover(self):
         return self.gameover
 
+import numbers
+class PlayAgent:
+    def __init__(self, Board, PlayerType):
+        self.Game = Board #Remember to remove ()
+        self.actionspace = [0,1,2,3,4,5]
+        self.state = self.Game.game_state
+        self.PlayerType = PlayerType #Either A or B
+        self.score = 0
+        self.gameover = False
+    
+    def reset(self):
+        self.Game.reset()
+        self.actionspace = [0,1,2,3,4,5]
+        self.state = self.Game.game_state
+        self.score = 0
+        self.gameover = self.Game.gameover
+
+    def act(self, agent_choice):
+        if isinstance(agent_choice, numbers.Integral):
+            if self.PlayerType == 'A':
+                move = lambda choice: self.Game.Player_A(choice)
+            else:
+                move = lambda choice: self.Game.Player_B(choice)
+            validmove = move(agent_choice)
+            if validmove == -1:
+                info = -1
+            else:
+                info = 0
+            resultingState = self.Game.game_state
+            self.state = resultingState
+
+            if self.PlayerType == 'A':
+                reward = abs(self.score - self.Game.POINTS_A) + info
+                self.score = self.Game.POINTS_A
+            else:
+                reward = abs(self.score - self.Game.POINTS_B) + info
+                self.score = self.Game.POINTS_B
+            if self.Game.gameover == True:
+                if self.Game.winner_is_A and self.PlayerType == 'A':
+                    self.score += 100
+                elif self.Game.winner_is_A and self.PlayerType == 'B':
+                    self.score -= 100
+                elif self.Game.winner_is_A == None:
+                    self.score -= 100
+            #self.Game.display()
+            self.gameover = self.Game.gameover
+            return resultingState, reward, self.gameover, info
+        else:
+            print('not an integer move')
 def Mancala_test(board):
     Mancala = board
     Mancala.display()
@@ -138,8 +211,8 @@ def Mancala_test(board):
     # Mancala.move('A4', True)
     # Mancala.move('A5', True)
     # Mancala.move('A6', True)
-    Mancala.display()
-    Mancala.win_check()
+    #Mancala.display()
+    #Mancala.win_check()
 
 
 #Mancala_test()

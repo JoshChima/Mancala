@@ -1,47 +1,113 @@
 from Mancala_DQN import Agent
-from Mancala_Rules import Board
+from Mancala_Rules import Board, PlayAgent
 import numpy as np
+import pygame
+from Mancala_Game import draw_board
+import sys
 #from utils import plotLearning
 
-class PlayAgent:
-    def __init__(self, Board, PlayerType):
-        self.Game = Board() #Remember to remove ()
-        self.actionspace = [0,1,2,3,4,5]
-        self.state = [self.Game.pockets[p] for p in self.Game.positions]
-        self.PlayerType = PlayerType #Either A or B
-        self.score = 0
 
-    def act(self, agent_choice):
-        if self.PlayerType == 'A':
-            move = lambda choice: self.Game.Player_A(choice)
-        else:
-            move = lambda choice: self.Game.Player_B(choice)
-        move(agent_choice)
-
-        resultingState = [self.Game.pockets[p] for p in self.Game.positions]
-
-        if self.PlayerType == 'A':
-            reward = abs(self.score - self.Game.POINTS_A)
-            self.score = self.Game.POINTS_A
-        else:
-            reward = abs(self.score - self.Game.POINTS_B)
-            self.score = self.Game.POINTS_B
         
 
 if __name__ == '__main__':
+
+    BLUE = (0,0,255)
+    BLACK = (0,0,0)
+    BURLYWOOD = (222,184,135)
+    PERU = (205,133,63)
+    ROSYBROWN = (188,143,143)
+    YELLOW = (255,255,0)
+    ROW_COUNT = 2
+    COLUMN_COUNT = 8
+    ButtonStore = {}
+
+    n_games = 10
     env = Board()
-    n_games = 500
+
     agent1 = Agent(gamma=0.99, epsilon=1.0,alpha=0.0005, input_dims=len(env.positions),
-                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01)
-
+                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='1')
     agent2 = Agent(gamma=0.99, epsilon=1.0,alpha=0.0005, input_dims=len(env.positions),
-                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01)
-
+                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='2')
     #agent.load_model() if you already have a model saved
-    score = []
-    eps_history = []
 
+    PA_1 = PlayAgent(env, 'A')
+    PA_2 = PlayAgent(env, 'B')
+
+    scores_A = []
+    scores_B = []
+    eps_history_A = []
+    eps_history_B = []
+
+    pygame.init()
+
+
+    SQUARESIZE = 100
+    width = COLUMN_COUNT * SQUARESIZE
+    height = (ROW_COUNT+1) * SQUARESIZE
+    font = pygame.font.Font('freesansbold.ttf', 16) 
+
+    size = (width, height)
+
+    RADIUS = int(SQUARESIZE/2 - 5)
+
+    screen = pygame.display.set_mode(size)
+    draw_board(env, ButtonStore)
+    pygame.display.update()
+    donzo = False
     for i in range(n_games):
-        done = False
-        score = 0
-        observation = env
+        #score = 0
+
+        observation = env.reset()
+        PA_1.reset()
+        PA_2.reset()
+        donzo = False
+
+        while donzo == False:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                draw_board(env, ButtonStore)
+            #Agent 1
+            while env.is_player_A == True and donzo == False:
+                #validmove = -1
+                #while validmove == -1:
+                action = agent1.choose_action(observation)
+                observation_, reward, done, info = PA_1.act(action)
+                agent1.remember(observation, action, reward, observation_, done)
+                #        validmove = info
+                #env.display()
+                draw_board(env, ButtonStore)
+                observation = observation_
+                agent1.learn()
+                #donzo = PA_2.Game.gameover
+            
+            #Agent 2
+            while env.is_player_A == False and donzo == False:
+                #validmove = -1
+                #while validmove == -1:
+                action = agent2.choose_action(observation)
+                observation_, reward, done, info = PA_2.act(action)
+                agent2.remember(observation, action, reward, observation_, done)
+                #    validmove = info
+                #env.display()
+                draw_board(env, ButtonStore)
+                observation = observation_
+                agent2.learn()
+                donzo = PA_2.Game.gameover
+        
+        eps_history_A.append(agent1.epsilon)
+        eps_history_B.append(agent2.epsilon)
+        scores_A.append(PA_1.score)
+        scores_B.append(PA_2.score)
+
+        avg_score_A = np.mean(scores_A[max(0, i-100):(i+1)])
+        avg_score_B = np.mean(scores_B[max(0, i-100):(i+1)])
+
+        print('episode ', i)
+        print('score A %.2f' % PA_1.score, 'average score A %.2f' % avg_score_A)
+        print('score B %.2f' % PA_2.score, 'average score B %.2f' % avg_score_B)
+
+        if i % 10 == 0 and i > 0:
+            agent1.save_model()
+    
+
