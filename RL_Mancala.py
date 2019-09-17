@@ -21,7 +21,7 @@ if __name__ == '__main__':
     COLUMN_COUNT = 8
     ButtonStore = {}
 
-    n_games = 10
+    n_games = 500
     env = Board()
 
     agent1 = Agent(gamma=0.99, epsilon=1.0,alpha=0.0005, input_dims=len(env.positions),
@@ -72,22 +72,26 @@ if __name__ == '__main__':
                 #validmove = -1
                 #while validmove == -1:
                 action = agent1.choose_action(observation)
-                observation_, reward, done, info = PA_1.act(action)
+                observation_, reward, done, info = PA_1.act(PA_2, action)
+                #PA_1.end_check(PA_2)
                 agent1.remember(observation, action, reward, observation_, done)
+                agent2.remember(observation, action, -reward, observation_, done)
                 #        validmove = info
                 #env.display()
                 draw_board(env, ButtonStore)
                 observation = observation_
                 agent1.learn()
-                #donzo = PA_2.Game.gameover
+                donzo = PA_2.Game.gameover
             
             #Agent 2
             while env.is_player_A == False and donzo == False:
                 #validmove = -1
                 #while validmove == -1:
                 action = agent2.choose_action(observation)
-                observation_, reward, done, info = PA_2.act(action)
+                observation_, reward, done, info = PA_2.act(PA_1, action)
+                #PA_2.end_check(PA_1)
                 agent2.remember(observation, action, reward, observation_, done)
+                agent1.remember(observation, action, -reward, observation_, done)
                 #    validmove = info
                 #env.display()
                 draw_board(env, ButtonStore)
@@ -104,10 +108,12 @@ if __name__ == '__main__':
         avg_score_B = np.mean(scores_B[max(0, i-100):(i+1)])
 
         print('episode ', i)
+        print('Last Player Turn Was A ', env.winner_is_A)
         print('score A %.2f' % PA_1.score, 'average score A %.2f' % avg_score_A)
         print('score B %.2f' % PA_2.score, 'average score B %.2f' % avg_score_B)
 
         if i % 10 == 0 and i > 0:
             agent1.save_model()
+            agent2.save_model()
     
 

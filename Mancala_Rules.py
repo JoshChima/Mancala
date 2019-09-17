@@ -30,6 +30,7 @@ class Board:
         self.game_state = np.array([self.pockets[p] for p in self.positions])
         self.POINTS_A = 0
         self.POINTS_B = 0
+        self.winner_is_A = None
         self.gameover = False
         return self.game_state
     def display(self):
@@ -160,7 +161,7 @@ class PlayAgent:
         self.score = 0
         self.gameover = self.Game.gameover
 
-    def act(self, agent_choice):
+    def act(self, other, agent_choice):
         if isinstance(agent_choice, numbers.Integral):
             if self.PlayerType == 'A':
                 move = lambda choice: self.Game.Player_A(choice)
@@ -180,18 +181,33 @@ class PlayAgent:
             else:
                 reward = abs(self.score - self.Game.POINTS_B) + info
                 self.score = self.Game.POINTS_B
-            if self.Game.gameover == True:
-                if self.Game.winner_is_A and self.PlayerType == 'A':
-                    self.score += 100
-                elif self.Game.winner_is_A and self.PlayerType == 'B':
-                    self.score -= 100
-                elif self.Game.winner_is_A == None:
-                    self.score -= 100
+            self.end_check(other)
             #self.Game.display()
             self.gameover = self.Game.gameover
             return resultingState, reward, self.gameover, info
         else:
             print('not an integer move')
+    
+    def end_check(self, other):
+        if self.Game.gameover == True:
+                if self.Game.winner_is_A and self.PlayerType == 'A':
+                    self.score += 100
+                    other.score -= 100
+                elif self.Game.winner_is_A and self.PlayerType == 'B':
+                    self.score -= 100
+                    other.score += 100
+                if not self.Game.winner_is_A and self.PlayerType == 'A':
+                    self.score -= 100
+                    other.score += 100
+                elif not self.Game.winner_is_A and self.PlayerType == 'B':
+                    self.score += 100
+                    other.score -= 100
+                elif self.Game.winner_is_A == None:
+                    self.score -= 100
+                    other.score -= 100
+        else:
+            pass
+
 def Mancala_test(board):
     Mancala = board
     Mancala.display()

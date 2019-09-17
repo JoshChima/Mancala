@@ -25,10 +25,10 @@ if __name__ == '__main__':
     game_over = False #Change this if game not stable start
 
     agent = Agent(gamma=0.99, epsilon=0.1,alpha=0.0005, input_dims=len(Mancala.positions),
-                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01)
+                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='2')
     agent.load_model()
-    PA = PlayAgent(Mancala, 'A')
-
+    PA = PlayAgent(Mancala, 'B')
+    PA_1 = PlayAgent(Mancala, 'A')
     pygame.init()
 
     SQUARESIZE = 100
@@ -47,22 +47,35 @@ if __name__ == '__main__':
     draw_board(Mancala, ButtonStore)
     pygame.display.update()
     while not game_over:
+        donzo = False
         observation = Mancala.game_state
+        while Mancala.is_player_A == False and donzo == False:
+            #validmove = -1
+            #while validmove == -1:
+            action = agent.choose_action(observation)
+            observation_, reward, done, info = PA.act(PA_1, action)
+            #PA_2.end_check(PA_1)
+            agent.remember(observation, action, reward, observation_, done)
+            #    validmove = info
+            #env.display()
+            draw_board(Mancala, ButtonStore)
+            observation = observation_
+            donzo = PA.Game.gameover
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(Mancala.get_is_A())
-                if Mancala.get_is_A():
-                    validmove = -1
-                    while validmove == -1:
-                        action = agent.choose_action(observation)
-                        observation_, reward, done, info = PA.act(action)
-                        agent.remember(observation, action, reward, observation_, done)
-                        validmove = info
-                    draw_board(Mancala, ButtonStore)
-                    observation = observation_
-                    agent.learn()
+                # if Mancala.get_is_A():
+                #     validmove = -1
+                #     while validmove == -1:
+                #         action = agent.choose_action(observation)
+                #         observation_, reward, done, info = PA.act(action)
+                #         agent.remember(observation, action, reward, observation_, done)
+                #         validmove = info
+                #     draw_board(Mancala, ButtonStore)
+                #     observation = observation_
+                #     agent.learn()
                 for label, button in ButtonStore.items():
                     if button.collidepoint(event.pos):
                         Mancala.move(label)
