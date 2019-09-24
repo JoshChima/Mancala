@@ -1,7 +1,10 @@
-from keras.layers import Dense, Activation
+from keras.layers import Dense, Activation, RNN, LSTMCell, Dropout
 from keras.models import Sequential, load_model
 from keras.optimizers import Adam
 import numpy as np
+import random
+
+
 
 #Replay Buffer
 #Handles Storage of the state, action, reward and state transition tuples
@@ -45,14 +48,23 @@ class ReplayBuffer(object):
 
         return states, actions, rewards, states_, terminal
 def build_dqn(lr, n_actions, input_dims, fcl_dims, fc2_dims):
+    # model = Sequential([
+    #     Dense(fcl_dims, input_shape=(input_dims, )),
+    #     Activation('relu'),
+    #     Dense(fc2_dims),
+    #     Activation('relu'),
+    #     Dense(n_actions)
+    # ])
+
     model = Sequential([
         Dense(fcl_dims, input_shape=(input_dims, )),
-        Activation('relu'),
+        Activation('sigmoid'),
+        Dropout(0.3),
         Dense(fc2_dims),
-        Activation('relu'),
+        Dropout(0.3),
+        Activation('sigmoid'),
         Dense(n_actions)
     ])
-
     model.compile(optimizer=Adam(lr=lr), loss='mse')
 
     return model
@@ -77,7 +89,7 @@ class Agent(object):
 
     def choose_action(self, state):
         state = state[np.newaxis, :]
-        rand = np.random.uniform(0, 1)
+        rand = random.random()
         if rand < self.epsilon:
             action = np.random.choice(self.action_space)
         else:

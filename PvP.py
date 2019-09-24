@@ -40,11 +40,12 @@ if __name__ == '__main__':
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 #print(Mancala.get_is_A())
-                print(event.pos)
+                #print(event.pos)
                 for label, button in ButtonStore.items():
                     if button.collidepoint(event.pos):
                         Mancala.move(label)
                         print(label)
+                Mancala.display()
                 draw_board(Mancala, ButtonStore)
                 game_over = Mancala.gameover
                 if game_over:

@@ -4,13 +4,25 @@ import numpy as np
 import pygame
 from Mancala_Game import draw_board
 import sys
+import keras
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+
+#import numba
+
 #from utils import plotLearning
+from tensorflow.python.client import device_lib
+from keras import backend as K
+K.tensorflow_backend._get_available_gpus()
 
-
-        
-
+config = tf.ConfigProto( device_count = {'GPU': 2 , 'CPU': 2} ) 
+sess = tf.Session(config=config) 
+keras.backend.set_session(sess)
 if __name__ == '__main__':
-
+    
     BLUE = (0,0,255)
     BLACK = (0,0,0)
     BURLYWOOD = (222,184,135)
@@ -21,14 +33,15 @@ if __name__ == '__main__':
     COLUMN_COUNT = 8
     ButtonStore = {}
 
-    n_games = 500
+    n_games = 1000
     env = Board()
 
-    agent1 = Agent(gamma=0.99, epsilon=1.0,alpha=0.0005, input_dims=len(env.positions),
+    agent1 = Agent(gamma=0.99, epsilon=10.0,alpha=0.0005, input_dims=len(env.positions),
                  n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='1')
-    agent2 = Agent(gamma=0.99, epsilon=1.0,alpha=0.0005, input_dims=len(env.positions),
+    agent2 = Agent(gamma=0.99, epsilon=10.0,alpha=0.0005, input_dims=len(env.positions),
                  n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='2')
-    #agent.load_model() if you already have a model saved
+    #agent1.load_model() #if you already have a model saved
+    #agent2.load_model()
 
     PA_1 = PlayAgent(env, 'A')
     PA_2 = PlayAgent(env, 'B')
@@ -69,14 +82,12 @@ if __name__ == '__main__':
                 draw_board(env, ButtonStore)
             #Agent 1
             while env.is_player_A == True and donzo == False:
-                #validmove = -1
-                #while validmove == -1:
-                action = agent1.choose_action(observation)
-                observation_, reward, done, info = PA_1.act(PA_2, action)
-                #PA_1.end_check(PA_2)
-                agent1.remember(observation, action, reward, observation_, done)
-                agent2.remember(observation, action, -reward, observation_, done)
-                #        validmove = info
+                validmove = -1
+                while validmove == -1:
+                    action = agent1.choose_action(observation)
+                    observation_, reward, done, info = PA_1.act(PA_2, action)
+                    agent1.remember(observation, action, reward, observation_, done)
+                    validmove = info
                 #env.display()
                 draw_board(env, ButtonStore)
                 observation = observation_
@@ -85,14 +96,13 @@ if __name__ == '__main__':
             
             #Agent 2
             while env.is_player_A == False and donzo == False:
-                #validmove = -1
-                #while validmove == -1:
-                action = agent2.choose_action(observation)
-                observation_, reward, done, info = PA_2.act(PA_1, action)
-                #PA_2.end_check(PA_1)
-                agent2.remember(observation, action, reward, observation_, done)
-                agent1.remember(observation, action, -reward, observation_, done)
-                #    validmove = info
+                validmove = -1
+                while validmove == -1:
+                    action = agent2.choose_action(observation)
+                    observation_, reward, done, info = PA_2.act(PA_1, action)
+                    agent2.remember(observation, action, reward, observation_, done)
+                    validmove = info
+                print('action:',action,' /reward:',reward, end='\r')
                 #env.display()
                 draw_board(env, ButtonStore)
                 observation = observation_
@@ -111,9 +121,20 @@ if __name__ == '__main__':
         print('Last Player Turn Was A ', env.winner_is_A)
         print('score A %.2f' % PA_1.score, 'average score A %.2f' % avg_score_A)
         print('score B %.2f' % PA_2.score, 'average score B %.2f' % avg_score_B)
+        
+        #print(device_lib.list_local_devices())
 
         if i % 10 == 0 and i > 0:
             agent1.save_model()
             agent2.save_model()
+            x = np.linspace(0, 10, 11)
+            A = np.cumsum(scores_A, 0)
+            B = np.cumsum(scores_B, 0)
+            
+            # sns.set()
+            # plt.plot(x, A)
+            # plt.plot(x, B)
+            # #plt.legend('ABCDEF', ncol=2, loc='upper left')
+            # plt.show()
     
 

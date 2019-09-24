@@ -50,13 +50,13 @@ if __name__ == '__main__':
         donzo = False
         observation = Mancala.game_state
         while Mancala.is_player_A == False and donzo == False:
-            #validmove = -1
-            #while validmove == -1:
-            action = agent.choose_action(observation)
-            observation_, reward, done, info = PA.act(PA_1, action)
+            validmove = -1
+            while validmove == -1:
+                action = agent.choose_action(observation)
+                observation_, reward, done, info = PA.act(PA_1, action)
+                validmove = info
             #PA_2.end_check(PA_1)
             agent.remember(observation, action, reward, observation_, done)
-            #    validmove = info
             #env.display()
             draw_board(Mancala, ButtonStore)
             observation = observation_
