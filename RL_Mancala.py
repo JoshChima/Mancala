@@ -33,12 +33,12 @@ if __name__ == '__main__':
     COLUMN_COUNT = 8
     ButtonStore = {}
 
-    n_games = 1000
+    n_games = 3000
     env = Board()
 
-    agent1 = Agent(gamma=0.99, epsilon=10.0,alpha=0.0005, input_dims=len(env.positions),
+    agent1 = Agent(gamma=0.99, epsilon=20.0,alpha=0.0005, input_dims=len(env.positions),
                  n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='1')
-    agent2 = Agent(gamma=0.99, epsilon=10.0,alpha=0.0005, input_dims=len(env.positions),
+    agent2 = Agent(gamma=0.99, epsilon=20.0,alpha=0.0005, input_dims=len(env.positions),
                  n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='2')
     #agent1.load_model() #if you already have a model saved
     #agent2.load_model()

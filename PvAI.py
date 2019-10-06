@@ -25,10 +25,10 @@ if __name__ == '__main__':
     game_over = False #Change this if game not stable start
 
     agent = Agent(gamma=0.99, epsilon=0.1,alpha=0.0005, input_dims=len(Mancala.positions),
-                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='2')
+                 n_actions=6, mem_size=1000000, batch_size=64, epsilon_end=0.01, agent_num='1')
     agent.load_model()
-    PA = PlayAgent(Mancala, 'B')
-    PA_1 = PlayAgent(Mancala, 'A')
+    PA = PlayAgent(Mancala, 'A')
+    PA_1 = PlayAgent(Mancala, 'B')
     pygame.init()
 
     SQUARESIZE = 100
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     while not game_over:
         donzo = False
         observation = Mancala.game_state
-        while Mancala.is_player_A == False and donzo == False:
+        while Mancala.is_player_A and donzo == False:
             validmove = -1
             while validmove == -1:
                 action = agent.choose_action(observation)

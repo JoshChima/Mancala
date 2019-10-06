@@ -111,8 +111,8 @@ class Board:
             positions = self.positions_A
         else:
             positions = self.positions_B
-        if piece_count == 1 and self.pockets[dest_pocket] == 0 and dest_pocket in positions[:6] and dest_pocket not in ['AStore','BStore']:
-            inverse_n_dest = self.positions.index(dest_pocket) * -1
+        inverse_n_dest = self.positions.index(dest_pocket) * -1
+        if piece_count == 1 and self.pockets[dest_pocket] == 0 and self.pockets[self.positions[inverse_n_dest]] > 0 and dest_pocket in positions[:6]:
             piece = self.pockets[self.positions[inverse_n_dest]] + 1
             if self.is_player_A:
                 self.pockets['AStore'] += piece

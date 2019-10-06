@@ -1,0 +1,7 @@
+-Add Switch system, to turn Games on and off
+-Visualize Data
+ -Game scores
+ -Current Episode
+ -Curent Scores
+ -##Average Scores##
+ -Last Player
